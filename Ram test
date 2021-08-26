@@ -1,0 +1,367 @@
+            .CPU    z80 
+; 
+            .ORG    $0000 
+            JP      $0100 
+            .ORG    $0066 
+            JP      $0300 
+; 
+            .ORG    $0100 
+; 
+BEGIN:               
+            LD      hl,$4000 
+            LD      BC,$7FFF 
+            DEC     hl 
+;----------------------------------------------------------------------------------------
+;Begin testing
+;----------------------------------------------------------------------------------------
+
+TEST:       INC     hl 
+            LD      d,%11111111 
+            LD      (hl),d 
+            LD      a,(hl) 
+            BIT     0,a 
+            JR      NZ,OVER 
+            OUT     ($FF),a 
+OVER:       NOP      
+            LD      a,(hl) 
+            BIT     1,a 
+            JR      NZ,OVER1 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER1:      NOP      
+            LD      a,(hl) 
+            BIT     2,a 
+            JR      NZ,OVER2 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER2:      NOP      
+            LD      a,(hl) 
+            BIT     3,a 
+            JR      NZ,OVER3 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER3:      NOP      
+            LD      a,(hl) 
+            BIT     4,a 
+            JR      NZ,OVER4 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER4:      NOP      
+            LD      a,(hl) 
+            BIT     5,a 
+            JR      NZ,OVER5 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER5:      NOP      
+            LD      a,(hl) 
+            BIT     6,a 
+            JR      NZ,OVER6 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER6:      NOP      
+            LD      a,(hl) 
+            BIT     7,a 
+            JR      NZ,OVER7 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER7:      NOP      
+            LD      d,%0000000 
+            LD      (hl),d 
+            LD      a,(hl) 
+            BIT     0,a 
+            JR      Z,OVER8 
+            OUT     ($FF),a 
+OVER8:      NOP      
+            LD      a,(hl) 
+            BIT     1,a 
+            JR      Z,OVER9 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER9:      NOP      
+            LD      a,(hl) 
+            BIT     2,a 
+            JR      Z,OVER10 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER10:     NOP      
+            LD      a,(hl) 
+            BIT     3,a 
+            JR      Z,OVER11 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER11:     NOP      
+            LD      a,(hl) 
+            BIT     4,a 
+            JR      Z,OVER12 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER12:     NOP      
+            LD      a,(hl) 
+            BIT     5,a 
+            JR      Z,OVER13 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER13:     NOP      
+            LD      a,(hl) 
+            BIT     6,a 
+            JR      Z,OVER14 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER14:     NOP      
+            LD      a,(hl) 
+            BIT     7,a 
+            JR      Z,OVER15 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVER15:     NOP      
+
+;----------------------------------------------------------------------------------------
+;Check if test has reached the end of the row
+;----------------------------------------------------------------------------------------
+            LD      a,h 
+            CP      b 
+            JP      nz,TEST ; check if h has reached the end
+            LD      a,l 
+            CP      c 
+            JP      nz,TEST ; check if l has reached the end
+            LD      l,$00 ; if it has reset l back to zero
+            LD      a,b ; using the end point (which does not change)
+            SUB     $3F ; set h
+            LD      h,a ; back to the start
+            JP      TEST 
+;----------------------------------------------------------------------------------------
+;Non maskable interrupt routine - used to swap between rows under test
+;----------------------------------------------------------------------------------------
+            .ORG    $300 
+            LD      a,b ; Osborne reset button pressed
+            ADD     a,$40 ; step to next row which is 4000h up
+            LD      b,a ; Set bc to next end point
+            LD      c,$ff 
+            LD      l,$00 
+            LD      a,b 
+            SUB     $3F 
+            JP      z,reset ; If next row is row 1 ($0000) then jump to special test
+            LD      h,a 
+            RETN     
+RESET:               
+            LD      hl,$0400 
+            LD      de,$4000 
+            LD      bc,END-$0400 
+            LDIR     
+            JP      $4000 
+            RETN     
+;-------------------------------------------------------------------------------------
+; This code needs to be copied into tested memory to execute when the ROM is paged out
+;-------------------------------------------------------------------------------------
+            .ORG    $400 
+BEGIN1:              
+            LD      hl,$0000 
+            LD      BC,$3FFF 
+            DEC     hl 
+;----------------------------------------------------------------------------------------
+;Page out ROM
+;----------------------------------------------------------------------------------------
+            LD      a,0 
+            OUT     ($00),a 
+;----------------------------------------------------------------------------------------
+;Begin testing
+;----------------------------------------------------------------------------------------
+TESTB:      INC     hl 
+            LD      d,%11111111 
+            LD      (hl),d 
+            LD      a,(hl) 
+            BIT     0,a 
+            JR      NZ,OVERB 
+            OUT     ($FF),a 
+OVERB:      NOP      
+            LD      a,(hl) 
+            BIT     1,a 
+            JR      NZ,OVERB1 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB1:     NOP      
+            LD      a,(hl) 
+            BIT     2,a 
+            JR      NZ,OVERB2 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB2:     NOP      
+            LD      a,(hl) 
+            BIT     3,a 
+            JR      NZ,OVERB3 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB3:     NOP      
+            LD      a,(hl) 
+            BIT     4,a 
+            JR      NZ,OVERB4 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB4:     NOP      
+            LD      a,(hl) 
+            BIT     5,a 
+            JR      NZ,OVERB5 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB5:     NOP      
+            LD      a,(hl) 
+            BIT     6,a 
+            JR      NZ,OVERB6 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB6:     NOP      
+            LD      a,(hl) 
+            BIT     7,a 
+            JR      NZ,OVERB7 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB7:     NOP      
+            LD      d,%0000000 
+            LD      (hl),d 
+            LD      a,(hl) 
+            BIT     0,a 
+            JR      Z,OVERB8 
+            OUT     ($FF),a 
+OVERB8:     NOP      
+            LD      a,(hl) 
+            BIT     1,a 
+            JR      Z,OVERB9 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB9:     NOP      
+            LD      a,(hl) 
+            BIT     2,a 
+            JR      Z,OVERB10 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB10:    NOP      
+            LD      a,(hl) 
+            BIT     3,a 
+            JR      Z,OVERB11 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB11:    NOP      
+            LD      a,(hl) 
+            BIT     4,a 
+            JR      Z,OVERB12 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB12:    NOP      
+            LD      a,(hl) 
+            BIT     5,a 
+            JR      Z,OVERB13 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB13:    NOP      
+            LD      a,(hl) 
+            BIT     6,a 
+            JR      Z,OVERB14 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB14:    NOP      
+            LD      a,(hl) 
+            BIT     7,a 
+            JR      Z,OVERB15 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+OVERB15:    NOP      
+;----------------------------------------------------------------------------------------
+;Check if test has reached the end of the row
+;----------------------------------------------------------------------------------------
+            LD      a,h 
+            CP      b 
+            JP      nz,TESTB+$4000-$0400 ; check if h has reached the end
+            LD      a,l 
+            CP      c 
+            JP      nz,TESTB+$4000-$0400 ; check if l has reached the end
+            LD      l,$00 ; if it has reset l back to zero
+            LD      a,b ; using the end point (which does not change)
+            SUB     $3F ; set h
+            LD      h,a ; back to the start
+            JP      TESTB + $4000-$0400 
+END:                 
+; 
