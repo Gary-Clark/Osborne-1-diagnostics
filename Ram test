@@ -1,4 +1,4 @@
-            .CPU    z80 
+              .CPU    z80 
 ; 
             .ORG    $0000 
             JP      $0100 
@@ -190,8 +190,8 @@ RESET:
             LD      de,$4000 
             LD      bc,END-$0400 
             LDIR     
+            LD      hl,$0000 
             JP      $4000 
-            RETN     
 ;-------------------------------------------------------------------------------------
 ; This code needs to be copied into tested memory to execute when the ROM is paged out
 ;-------------------------------------------------------------------------------------
@@ -203,12 +203,30 @@ BEGIN1:
 ;----------------------------------------------------------------------------------------
 ;Page out ROM
 ;----------------------------------------------------------------------------------------
-            LD      a,0 
-            OUT     ($00),a 
+            DI       
+            OUT     ($01),a 
+            LD      a,$00 
+            LD      ($ef08),a 
 ;----------------------------------------------------------------------------------------
 ;Begin testing
 ;----------------------------------------------------------------------------------------
-TESTB:      INC     hl 
+TESTB:      OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            OUT     ($FF),a 
+            INC     hl 
             LD      d,%11111111 
             LD      (hl),d 
             LD      a,(hl) 
@@ -352,16 +370,25 @@ OVERB15:    NOP
 ;----------------------------------------------------------------------------------------
 ;Check if test has reached the end of the row
 ;----------------------------------------------------------------------------------------
+
+            LD      a,$C3 ;reinstate NMI
+            LD      ($0066),a 
+            LD      a,$00 
+            LD      ($0067),a 
+            LD      a,$42 
+            LD      ($0068),a 
             LD      a,h 
             CP      b 
             JP      nz,TESTB+$4000-$0400 ; check if h has reached the end
             LD      a,l 
             CP      c 
             JP      nz,TESTB+$4000-$0400 ; check if l has reached the end
-            LD      l,$00 ; if it has reset l back to zero
-            LD      a,b ; using the end point (which does not change)
-            SUB     $3F ; set h
-            LD      h,a ; back to the start
-            JP      TESTB + $4000-$0400 
+            JP      BEGIN1 + $4000-$0400 
+.org $0600
+NMI_CODE:
+            DI       
+            OUT     ($00),a 
+            LD      a,$00 
+            LD      ($ef08),a
+            JP      $0100
 END:                 
-; 
