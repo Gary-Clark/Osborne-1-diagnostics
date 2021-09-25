@@ -1,0 +1,134 @@
+         .CPU    z80 
+
+            .ORG    $0000 
+            JP      $0100 
+            .ORG    $0066 
+            JP      $0100 
+; 
+            .ORG    $0100 
+            DI       
+; Setup PIA to video window (code from OSBORNE 1 ROM 1.3)
+            CALL    SPAO 
+            LD      C,$EA 
+            CALL    OPAD 
+            XOR     A 
+            LD      C,A 
+            CALL    OPBD 
+
+BEGIN:      LD      hl,$F000-1 
+            LD      bc,$FFFF 
+TEST:       INC     hl 
+            LD      (hl)," " 
+            LD      a,h 
+            CP      b 
+            JP      nz,TEST 
+            LD      a,l 
+            CP      c 
+            JP      nz,TEST 
+; Video memory filled with blank ASCII characters - now fill with test pattern
+
+            LD      hl,LINE1 
+            LD      de,$f000 
+            LD      bc,$0080 
+            LDIR     
+
+            LD      hl,LINE2_23 
+            LD      de,$f080 
+            LD      bc,$0080 
+LOOP:       LDIR     
+            LD      bc,$0080 
+            LD      hl,LINE2_23 
+            LD      a,d 
+            CP      $fb 
+            JP      nz,loop 
+            LD      a,e 
+            CP      $80 
+            JP      nz,LOOP 
+
+            LD      hl,LINE24 
+            LD      de,$fb80 
+            LD      bc,$0080 
+            LDIR     
+
+            LD      hl,$f000 
+LOOP2:      LD      a,(hl) 
+            OR      %10000000 
+            ENADIM   
+            LD      (hl),a 
+            DISDIM   
+            INC     hl 
+            LD      a,h 
+            CP      $FF 
+            JP      nz,LOOP2 
+            LD      a,l 
+            CP      $ff 
+            JP      nz,loop2 
+
+            HALT     
+
+
+            .MACRO  ENADIM 
+            OUT     ($02),a 
+            .ENDM    
+
+            .MACRO  DISDIM 
+            OUT     ($03),a 
+            .ENDM    
+
+SPAO:                
+            LD      A,$03 
+            LD      ($2C01),a 
+            LD      A,$FF 
+            LD      ($2C00),a 
+            LD      A,$00 
+            LD      ($2C03),a 
+            LD      A,$FF 
+            LD      ($2C02),a 
+            RET      
+
+OPAD:                
+            LD      a,4+3 
+            LD      ($2C01),a 
+            LD      a,c 
+            LD      ($2C00),a 
+            RET      
+
+OPBD:                
+            LD      a,4 
+            LD      ($2C03),a 
+            LD      a,c 
+            LD      ($2C02),a 
+            RET      
+
+LINE1:               
+;                    1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16
+            DB      $07,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18 
+            DB      $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18 
+            DB      $18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18,$18 
+            DB      $18,$18,$18,$06,"x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+
+LINE2_23:            
+            DB      $04,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O" 
+            DB      "P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e" 
+            DB      "f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u" 
+            DB      "v","w","x",$01,"x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+LINE24:              
+            DB      $14,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17 
+            DB      $17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17 
+            DB      $17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17,$17 
+            DB      $17,$17,$17,$12,"x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+            DB      "x","x","x","x","x","x","x","x","x","x","x","x","x","x","x","x" 
+
+
+
