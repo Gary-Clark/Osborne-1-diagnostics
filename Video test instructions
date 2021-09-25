@@ -1,0 +1,3 @@
+Compile and burn this to a 2732 EPROM and replace the standard Osborne 1 ROM
+When booted, the code clears the video memory from F000 to FFFF then sets up the video PIA to scan memory from F000 for the screen display.
+The code then creates a screen display that consists of a graphic border with ASCII characters A to Z and a to z to allow diagnostic of the video memory and the video subsystem.
