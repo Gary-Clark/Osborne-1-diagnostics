@@ -1,4 +1,14 @@
 This code enables the user to test each bank of RAM in an OSBORNE 1 computer even if the screen is not working.
-Compiled and written to a 2732 EPROM to replace the Osborne ROM, it will begin at $4000 and test a block of 16K in chips UB20 to UB27 and will indicate failures by toggling the IORQ line on pin 20 of the Z80 CPU, the number of toggles indicates the faulty chip. Toggle once indicates chip UB27 for a bit 0 fault, toggled 8 times for chip UB20 for a bit 7 fault.
-When the reset button is pressed, a NMI is asserted and the code then increments the memory location to the next 16K block in chips UC20 to UC27, then again to chips UD20 to UD27.
-When the reset button is pressed for the third time, previously indicated RAM faults should have been fixed because now the program copies code into RAM, jumps to that code, maps out the EPROM and maps in the lower RAM, then runs the test in the same manner.
+Compiled and written to a 2732 EPROM to replace the Osborne ROM, it will begin at $4000 and test a block of 16K
+in chips UB20 to UB27 by writing high then low bit patterns and then reading back and comparing with the expected
+bit state. If the bit is not as expected, the progam indicates this to the user by toggling the CPU's IORQ line 
+(on pin 20), a number of times that indicates the faulty chip. 
+Toggled once means that somewhere in the 16k range, bit 0 did not operate as expected and therefore chip UB27 
+is faulty, toggled 8 times would indicate a fault in chip UB20 for a bit 7 fault.
+When the reset button is pressed, a NMI is asserted and the code then increments the memory location to the next
+16K block in chips UC27 to UC20, then again to chips UD27 to UD20.
+When the reset button is pressed for the third time, previously indicated RAM faults should have been fixed because
+now the program copies code into RAM, jumps to that code, pages out the EPROM and pages in the lower RAM, then runs
+the test in the same manner for chips UA27 to UA20.
+Once test 4 is in progress, the machine needs to be reset (not using the 'reset' button as that only operates NMI) to 
+restart the program from the start.
